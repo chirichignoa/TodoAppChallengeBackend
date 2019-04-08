@@ -83,7 +83,7 @@ public class TodoServiceImpl implements TodoService {
             return new Response(e.getMessage(), null, HttpStatus.BAD_REQUEST);
         }
         // return response
-        return new Response("Error at saving todo.", null, HttpStatus.BAD_REQUEST);
+        return new Response("Error saving todo.", null, HttpStatus.BAD_REQUEST);
     }
 
     public String saveImage(MultipartFile image) {
@@ -100,7 +100,7 @@ public class TodoServiceImpl implements TodoService {
             return fileName;
         } catch (IOException ex) {
             try {
-                throw new FileNotFound("Error at saving image.");
+                throw new FileNotFound("Error saving image.");
             } catch (Exception e) {
                 e.printStackTrace();
             }
