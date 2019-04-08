@@ -6,19 +6,22 @@ import com.mavha.backend.repository.TodoRepository;
 import com.mavha.backend.util.FileStorageProperties;
 import com.mavha.backend.util.Response;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.data.domain.Example;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 
 @Service
 public class TodoServiceImpl implements TodoService {
@@ -41,23 +44,17 @@ public class TodoServiceImpl implements TodoService {
     }
 
     @Override
-    public Response getAllTodos() {
-        return null;
+    public Response getTodos(Todo todo) {
+        List<Todo> todos = this.todoRepository.findAll(Example.of(todo));
+        return new Response(null,
+                todos,
+                HttpStatus.OK);
     }
 
     @Override
-    public Response getTodosById(Long id) {
-        return null;
-    }
-
-    @Override
-    public Response getTodosByDescription(String description) {
-        return null;
-    }
-
-    @Override
-    public Response getTodosByState(Status status) {
-        return null;
+    public Resource getImage(Long id) {
+        Todo todo = this.todoRepository.findById(id);
+        return this.loadFileAsResource(todo.getImage());
     }
 
     @Override
@@ -97,5 +94,32 @@ public class TodoServiceImpl implements TodoService {
             }
         }
         return null;
+    }
+
+    private Resource loadFileAsResource(String fileName) {
+        try {
+            Path filePath = this.rootLocation.resolve(fileName).normalize();
+            Resource resource = new UrlResource(filePath.toUri());
+            if(resource.exists()) {
+                return resource;
+            } else {
+                //throw new MyFileNotFoundException("File not found " + fileName);
+                return null;
+            }
+        } catch (MalformedURLException ex) {
+            // throw new MyFileNotFoundException("File not found " + fileName, ex);
+            return null;
+        }
+    }
+
+    @Override
+    @Transactional
+    public Response updateStatus(Long id, Status status) {
+        try {
+            this.todoRepository.updateStatus(id, status);
+            return new Response(null, id, HttpStatus.OK);
+        } catch (Exception e) {
+            return new Response("Error al actualizar el ToDo", null, HttpStatus.BAD_REQUEST);
+        }
     }
 }
