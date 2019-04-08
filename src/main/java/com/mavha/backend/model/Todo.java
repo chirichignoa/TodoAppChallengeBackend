@@ -4,6 +4,7 @@ import com.google.gson.annotations.JsonAdapter;
 import com.mavha.backend.util.TodoGsonAdapter;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 @Entity
 @JsonAdapter(TodoGsonAdapter.class)
@@ -63,5 +64,22 @@ public class Todo {
 
     public void setImage(String image) {
         this.image = image;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Todo todo = (Todo) o;
+        return Objects.equals(id, todo.id) &&
+                Objects.equals(title, todo.title) &&
+                Objects.equals(description, todo.description) &&
+                status == todo.status &&
+                Objects.equals(image, todo.image);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, title, description, status, image);
     }
 }

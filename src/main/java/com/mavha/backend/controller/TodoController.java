@@ -2,6 +2,7 @@ package com.mavha.backend.controller;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.mavha.backend.exception.FileNotFound;
 import com.mavha.backend.model.Status;
 import com.mavha.backend.model.Todo;
 import com.mavha.backend.service.TodoService;
@@ -43,7 +44,9 @@ public class TodoController {
             produces = "application/json;",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public @ResponseBody
-    ResponseEntity<String> saveTodo(@RequestParam("title") String title, @RequestParam("description") String description, @RequestParam("image") MultipartFile image) {
+    ResponseEntity<String> saveTodo(@RequestParam("title") String title,
+                                    @RequestParam("description") String description,
+                                    @RequestParam("image") MultipartFile image) {
         Todo todo = new Todo(title, description);
         Response response = this.todoService.saveTodo(todo, image);
         return ResponseEntity.status(response.getCode())
@@ -56,8 +59,8 @@ public class TodoController {
                     method = RequestMethod.GET,
                     produces = "application/json;")
     public @ResponseBody ResponseEntity<String> getTodos(@RequestParam(value="id", required=false) Long id,
-                                                         @RequestParam(value="description", required=false) String description,
-                                                         @RequestParam(value="status", required=false) String status) {
+                                                 @RequestParam(value="description", required=false) String description,
+                                                 @RequestParam(value="status", required=false) String status) {
         Todo todo = new Todo();
         if(id != null) {
             todo.setId(id);
@@ -79,23 +82,25 @@ public class TodoController {
             method = RequestMethod.GET,
             produces = "application/json;")
     public @ResponseBody ResponseEntity<Resource> getImage(@PathVariable Long id, HttpServletRequest request) {
-        Resource resource= this.todoService.getImage(id);
-        // Try to determine file's content type
-        String contentType = null;
         try {
-            contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
-        } catch (IOException ex) {
-            logger.info("Could not determine file type.");
+            Resource resource = this.todoService.getImage(id);
+            String contentType = null;
+            try {
+                contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
+            } catch (IOException ex) {
+                logger.info("Could not determine file type.");
+            }
+            if (contentType == null) {
+                contentType = "application/octet-stream";
+            }
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+                    .body(resource);
+        } catch (FileNotFound e) {
+            return ResponseEntity.badRequest()
+                    .body(null);
         }
-
-        // Fallback to the default content type if type could not be determined
-        if(contentType == null) {
-            contentType = "application/octet-stream";
-        }
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(contentType))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
-                .body(resource);
     }
 
     // PATCH update state

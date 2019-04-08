@@ -1,5 +1,6 @@
 package com.mavha.backend.service;
 
+import com.mavha.backend.exception.FileNotFound;
 import com.mavha.backend.model.Status;
 import com.mavha.backend.model.Todo;
 import com.mavha.backend.repository.TodoRepository;
@@ -54,27 +55,38 @@ public class TodoServiceImpl implements TodoService {
     @Override
     public Resource getImage(Long id) {
         Todo todo = this.todoRepository.findById(id);
-        return this.loadFileAsResource(todo.getImage());
+        try {
+            Path filePath = this.rootLocation.resolve(todo.getImage()).normalize();
+            Resource resource = new UrlResource(filePath.toUri());
+            if(resource.exists()) {
+                return resource;
+            } else {
+                throw new FileNotFound("Error at saving image.");
+            }
+        } catch (MalformedURLException ex) {
+            throw new FileNotFound("Error at saving image.");
+        }
     }
 
     @Override
     @Transactional
     public Response saveTodo(Todo todo, MultipartFile image) {
+        String path;
         try {
-            String path = saveImage(image);
+            path = saveImage(image);
             if(path != null) {
                 todo.setImage(path);
                 this.todoRepository.save(todo);
                 return new Response(null, todo.getId(), HttpStatus.CREATED);
             }
-        } catch (Exception e) {
+        } catch (FileNotFound e) {
             return new Response(e.getMessage(), null, HttpStatus.BAD_REQUEST);
         }
         // return response
-        return new Response("Error saving image", null, HttpStatus.BAD_REQUEST);
+        return new Response("Error at saving todo.", null, HttpStatus.BAD_REQUEST);
     }
 
-    private String saveImage(MultipartFile image) {
+    public String saveImage(MultipartFile image) {
         // Normalize file name
         String fileName = StringUtils.cleanPath(image.getOriginalFilename());
         try {
@@ -88,28 +100,12 @@ public class TodoServiceImpl implements TodoService {
             return fileName;
         } catch (IOException ex) {
             try {
-                throw new Exception("Failed to store file " + image, ex);
+                throw new FileNotFound("Error at saving image.");
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
         return null;
-    }
-
-    private Resource loadFileAsResource(String fileName) {
-        try {
-            Path filePath = this.rootLocation.resolve(fileName).normalize();
-            Resource resource = new UrlResource(filePath.toUri());
-            if(resource.exists()) {
-                return resource;
-            } else {
-                //throw new MyFileNotFoundException("File not found " + fileName);
-                return null;
-            }
-        } catch (MalformedURLException ex) {
-            // throw new MyFileNotFoundException("File not found " + fileName, ex);
-            return null;
-        }
     }
 
     @Override
@@ -119,7 +115,7 @@ public class TodoServiceImpl implements TodoService {
             this.todoRepository.updateStatus(id, status);
             return new Response(null, id, HttpStatus.OK);
         } catch (Exception e) {
-            return new Response("Error al actualizar el ToDo", null, HttpStatus.BAD_REQUEST);
+            return new Response("Error updating Todo", null, HttpStatus.BAD_REQUEST);
         }
     }
 }
