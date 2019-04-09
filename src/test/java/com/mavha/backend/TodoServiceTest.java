@@ -6,7 +6,9 @@ import com.google.gson.GsonBuilder;
 import com.mavha.backend.exception.FileNotFound;
 import com.mavha.backend.model.Status;
 import com.mavha.backend.model.Todo;
+import com.mavha.backend.repository.SearchCriteria;
 import com.mavha.backend.repository.TodoRepository;
+import com.mavha.backend.repository.TodoSpecification;
 import com.mavha.backend.service.TodoServiceImpl;
 import com.mavha.backend.util.FileStorageProperties;
 import com.mavha.backend.util.Response;
@@ -22,6 +24,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.data.domain.Example;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
@@ -133,15 +136,11 @@ public class TodoServiceTest {
         todos.add(todo);
         Response correctResponse = new Response(null, todos, HttpStatus.OK);
 
-//        Todo todo2 = new Todo();
-//
-//        Mockito.doReturn(todos)
-//                .when(this.todoRepository)
-//                .findAll(Example.of(todo2));
-//
-//
-//        Response response = this.todoService.getTodos(todo2);
-//        assertThat(response).isEqualTo(correctResponse);
+        Mockito.when(this.todoRepository.findAll((Specification<Todo>) Mockito.eq(null))).thenReturn(todos);
+
+
+        Response response = this.todoService.getTodos(null, null, null);
+        assertThat(response).isEqualTo(correctResponse);
     }
 
     @Test
@@ -149,22 +148,21 @@ public class TodoServiceTest {
         List<Todo> todos = new ArrayList<>();
         Todo todo = new Todo("Doctor", "Sacar turno con pediatra");
         todo.setId(245L);
+        todo.setImage("C:/file-dir/image1.png");
+        todo.setStatus(Status.DONE);
+        todos.add(todo);
+        todo = new Todo("Doctor", "Sacar turno con nutricionista");
+        todo.setId(245L);
         todo.setImage("C:/file-dir/image2.png");
         todo.setStatus(Status.DONE);
         todos.add(todo);
         Response correctResponse = new Response(null, todos, HttpStatus.OK);
 
-//        Todo todo2 = new Todo();
-//        todo2.setDescription("Sacar turno con pediatra");
-//        todo2.setStatus(Status.DONE);
-//
-//        Mockito.doReturn(todos)
-//                .when(this.todoRepository)
-//                .findAll(Example.of(todo2));
-//
-//
-//        Response response = this.todoService.getTodos(todo2);
-//        assertThat(response).isEqualTo(correctResponse);
+        Specification spec = Specification.where(new TodoSpecification(new SearchCriteria("description", ":", "sacar")));
+
+        Mockito.when(this.todoRepository.findAll(Mockito.any(Specification.class))).thenReturn(todos);
+        Response response = this.todoService.getTodos(null, "Sacar", null);
+        assertThat(response).isEqualTo(correctResponse);
     }
 
     @Test

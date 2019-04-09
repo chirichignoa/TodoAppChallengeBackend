@@ -66,9 +66,6 @@ public class TodoServiceImpl implements TodoService {
         if(description != null) {
             params.add(new SearchCriteria("description",":", description));
         }
-        if(description != null) {
-            params.add(new SearchCriteria("description",":", description));
-        }
         if(status != null) {
             params.add(new SearchCriteria("status", ":", status));
         }
