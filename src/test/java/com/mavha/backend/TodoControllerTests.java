@@ -125,20 +125,19 @@ public class TodoControllerTests {
         List<Todo> todos = new ArrayList<>();
         Todo todo = new Todo("Art. Limpieza", "Comprar articulos de limpieza");
         todo.setId(233L);
-        todo.setImage("C:/file-dir/image1.png");
+        todo.setImage("file-dir/image1.png");
         todos.add(todo);
         todo = new Todo("Doctor", "Sacar turno con pediatra");
         todo.setId(245L);
-        todo.setImage("C:/file-dir/image2.png");
+        todo.setImage("file-dir/image2.png");
         todos.add(todo);
-
-//        Mockito.when(todoService
-//                .getTodos(Mockito.any(Todo.class)))
-//                .thenReturn(new Response(null, this.gson.toJson(todos), HttpStatus.OK));
-//        MockHttpServletResponse response = this.mockMvc.perform(get("/todo"))
-//                                                        .andReturn()
-//                                                        .getResponse();
-//        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+        Mockito.when(todoService
+                .getTodos(Mockito.anyLong(), Mockito.anyString(), Mockito.any(Status.class)))
+                .thenReturn(new Response(null, this.gson.toJson(todos), HttpStatus.OK));
+        MockHttpServletResponse response = this.mockMvc.perform(get("/todo?id=25&description=asd&status=Pending"))
+                                                        .andReturn()
+                                                        .getResponse();
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
     }
 
     //PATCH
