@@ -88,13 +88,13 @@ public class TodoServiceTest {
 
     @Test
     public void shouldNotSaveTodo() {
-        Response correctResponse = new Response("Error at saving image.", null, HttpStatus.BAD_REQUEST);
+        Response correctResponse = new Response("Error saving image.", null, HttpStatus.BAD_REQUEST);
         Todo todo = new Todo("Art. Limpieza", "Comprar Articulos de limpieza");
         MockMultipartFile image = new MockMultipartFile("image", "image.png",
                 "application/x-www-form-urlencoded", new byte[10]);
 
         TodoServiceImpl todoServiceMock = Mockito.spy(this.todoService);
-        Mockito.doThrow(new FileNotFound("Error at saving image."))
+        Mockito.doThrow(new FileNotFound("Error saving image."))
                 .when(todoServiceMock)
                 .saveImage(Mockito.any(MultipartFile.class));
 
@@ -105,7 +105,7 @@ public class TodoServiceTest {
 
     @Test
     public void shouldNotSaveTodoInvalidName() {
-        Response correctResponse = new Response("Error at saving todo.", null, HttpStatus.BAD_REQUEST);
+        Response correctResponse = new Response("Error saving todo.", null, HttpStatus.BAD_REQUEST);
         Todo todo = new Todo("Art. Limpieza", "Comprar Articulos de limpieza");
         MockMultipartFile image = new MockMultipartFile("image", "image.png",
                 "application/x-www-form-urlencoded", new byte[10]);

@@ -17,6 +17,7 @@ public class TodoGsonAdapter extends TypeAdapter<Todo> {
         jsonWriter.name("title").value(todo.getTitle());
         jsonWriter.name("description").value(todo.getDescription());
         jsonWriter.name("status").value(todo.getStatus().toString());
+        jsonWriter.name("path").value(todo.getImage());
         jsonWriter.endObject();
     }
 

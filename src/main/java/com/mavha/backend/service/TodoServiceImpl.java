@@ -33,8 +33,7 @@ public class TodoServiceImpl implements TodoService {
     @Autowired
     public TodoServiceImpl(TodoRepository todoRepository, FileStorageProperties properties) {
         this.todoRepository = todoRepository;
-        this.rootLocation = Paths.get(properties.getLocation())
-                .toAbsolutePath().normalize();
+        this.rootLocation = Paths.get(properties.getLocation()).normalize();
         if(Files.notExists(this.rootLocation)) {
             try {
                 Files.createDirectory(this.rootLocation);
@@ -97,7 +96,7 @@ public class TodoServiceImpl implements TodoService {
             // Copy file to the target location (Replacing existing file with the same name)
             Path targetLocation = this.rootLocation.resolve(fileName);
             Files.copy(image.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-            return fileName;
+            return this.rootLocation.toString() + "/" + fileName;
         } catch (IOException ex) {
             try {
                 throw new FileNotFound("Error saving image.");
