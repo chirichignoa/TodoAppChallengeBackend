@@ -61,17 +61,22 @@ public class TodoController {
     public @ResponseBody ResponseEntity<String> getTodos(@RequestParam(value="id", required=false) Long id,
                                                  @RequestParam(value="description", required=false) String description,
                                                  @RequestParam(value="status", required=false) String status) {
-        Todo todo = new Todo();
-        if(id != null) {
-            todo.setId(id);
-        }
-        if(description != null) {
-            todo.setDescription(description);
-        }
+//        Todo todo = new Todo();
+//        if(id != null) {
+//            todo.setId(id);
+//        }
+//        if(description != null) {
+//            todo.setDescription(description);
+//        }
+//        if(status != null) {
+//            todo.setStatus(Status.PENDING.toString().equals(status) ? Status.PENDING : Status.DONE);
+//        }
+//        Response response = this.todoService.getTodos(todo);
+        Status statusTodo = null;
         if(status != null) {
-            todo.setStatus(Status.PENDING.toString().equals(status) ? Status.PENDING : Status.DONE);
+            statusTodo = Status.PENDING.toString().equals(status) ? Status.PENDING : Status.DONE;
         }
-        Response response = this.todoService.getTodos(todo);
+        Response response = this.todoService.getTodos(id, description, statusTodo);
         return ResponseEntity.status(response.getCode())
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(this.gson.toJson(response));

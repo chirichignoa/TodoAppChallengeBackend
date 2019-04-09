@@ -7,7 +7,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface TodoService {
-    Response getTodos(Todo todo);
+    //Response getTodos(Todo todo);
+    Response getTodos(Long id, String description, Status status);
     Response saveTodo(Todo todo, MultipartFile image);
     Response updateStatus(Long id, Status status);
     Resource getImage(Long id);

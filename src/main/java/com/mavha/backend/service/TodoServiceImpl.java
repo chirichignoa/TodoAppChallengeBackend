@@ -3,13 +3,16 @@ package com.mavha.backend.service;
 import com.mavha.backend.exception.FileNotFound;
 import com.mavha.backend.model.Status;
 import com.mavha.backend.model.Todo;
+import com.mavha.backend.repository.SearchCriteria;
 import com.mavha.backend.repository.TodoRepository;
+import com.mavha.backend.repository.TodoSpecification;
 import com.mavha.backend.util.FileStorageProperties;
 import com.mavha.backend.util.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Example;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +25,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class TodoServiceImpl implements TodoService {
@@ -34,7 +40,7 @@ public class TodoServiceImpl implements TodoService {
     public TodoServiceImpl(TodoRepository todoRepository, FileStorageProperties properties) {
         this.todoRepository = todoRepository;
         this.rootLocation = Paths.get(properties.getLocation()).normalize();
-        if(Files.notExists(this.rootLocation)) {
+        if (Files.notExists(this.rootLocation)) {
             try {
                 Files.createDirectory(this.rootLocation);
             } catch (IOException e) {
@@ -43,12 +49,50 @@ public class TodoServiceImpl implements TodoService {
         }
     }
 
+//    @Override
+//    public Response getTodos(Todo todo) {
+//        List<Todo> todos = this.todoRepository.findAll(Example.of(todo));
+//        return new Response(null,
+//                todos,
+//                HttpStatus.OK);
+//    }
+
     @Override
-    public Response getTodos(Todo todo) {
-        List<Todo> todos = this.todoRepository.findAll(Example.of(todo));
+    public Response getTodos(Long id, String description, Status status) {
+        List<SearchCriteria> params = new ArrayList<>();
+        if(id != null) {
+            params.add(new SearchCriteria("id",":", id));
+        }
+        if(description != null) {
+            params.add(new SearchCriteria("description",":", description));
+        }
+        if(description != null) {
+            params.add(new SearchCriteria("description",":", description));
+        }
+        if(status != null) {
+            params.add(new SearchCriteria("status", ":", status));
+        }
+        Specification <Todo> spec = getSpecs(params);
+        List<Todo> todos = this.todoRepository.findAll(spec);
         return new Response(null,
                 todos,
                 HttpStatus.OK);
+    }
+
+    private Specification<Todo> getSpecs(List<SearchCriteria> params) {
+        if (params.size() == 0) {
+            return null;
+        }
+        List<Specification> specs = params.stream()
+                .map(TodoSpecification::new)
+                .collect(Collectors.toList());
+
+        Specification result = specs.get(0);
+
+        for (int i = 1; i < params.size(); i++) {
+            result = Specification.where(result).and(specs.get(i));
+        }
+        return result;
     }
 
     @Override
@@ -87,7 +131,7 @@ public class TodoServiceImpl implements TodoService {
 
     public String saveImage(MultipartFile image) {
         // Normalize file name
-        String fileName = StringUtils.cleanPath(image.getOriginalFilename());
+        String fileName = UUID.randomUUID().toString();
         try {
             // Check if the file's name contains invalid characters
             if(fileName.contains("..")) {
