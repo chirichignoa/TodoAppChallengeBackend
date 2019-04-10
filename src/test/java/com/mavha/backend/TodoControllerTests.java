@@ -63,11 +63,16 @@ public class TodoControllerTests {
     // POST
     @Test
     public void shouldCreateTodo() throws Exception {
+        Todo todo = new Todo("Titulo", "Descripcion");
+        todo.setId(223L);
+        todo.setImage("/upload-dir/" + UUID.randomUUID().toString());
+        Response correctResponse = new Response(null,
+                todo,
+                HttpStatus.CREATED);
+
         Mockito.when(todoService
-                .saveTodo(Mockito.any(Todo.class), Mockito.any(MultipartFile.class)))
-                .thenReturn(new Response(null,
-                                        244L,
-                                        HttpStatus.OK));
+                        .saveTodo(Mockito.any(Todo.class), Mockito.any(MultipartFile.class)))
+                .thenReturn(correctResponse);
         MockMultipartFile image = new MockMultipartFile("image", "image.png",
                                                 "application/x-www-form-urlencoded", new byte[10]);
         MockHttpServletResponse response =  mockMvc.perform(
@@ -77,7 +82,7 @@ public class TodoControllerTests {
                     .param("description", "Comprar articulos de limpieza"))
                 .andReturn()
                 .getResponse();
-        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.CREATED.value());
     }
 
     @Test
@@ -143,17 +148,21 @@ public class TodoControllerTests {
     //PATCH
     @Test
     public void shouldUpdateTodo() throws Exception {
-        Long id = 254L;
-
+        Todo todo = new Todo("Titulo", "Descripcion");
+        todo.setId(223L);
+        todo.setImage("/upload-dir/" + UUID.randomUUID().toString());
+        Response correctResponse = new Response(null,
+                todo,
+                HttpStatus.OK);
         Mockito.when(todoService
                 .updateStatus(Mockito.any(Long.class), Mockito.any(Status.class)))
-                .thenReturn(new Response(null, id, HttpStatus.OK));
+                .thenReturn(correctResponse);
 
 
         JSONObject reservation = new JSONObject();
         reservation.put("status", Status.DONE);
 
-        MockHttpServletResponse response = this.mockMvc.perform(patch("/todo/" + id)
+        MockHttpServletResponse response = this.mockMvc.perform(patch("/todo/" + todo.getId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(reservation.toString()))
                 .andReturn()

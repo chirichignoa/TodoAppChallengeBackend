@@ -20,7 +20,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -49,16 +48,9 @@ public class TodoServiceImpl implements TodoService {
         }
     }
 
-//    @Override
-//    public Response getTodos(Todo todo) {
-//        List<Todo> todos = this.todoRepository.findAll(Example.of(todo));
-//        return new Response(null,
-//                todos,
-//                HttpStatus.OK);
-//    }
-
     @Override
     public Response getTodos(Long id, String description, Status status) {
+
         List<SearchCriteria> params = new ArrayList<>();
         if(id != null) {
             params.add(new SearchCriteria("id",":", id));
@@ -93,22 +85,6 @@ public class TodoServiceImpl implements TodoService {
     }
 
     @Override
-    public Resource getImage(Long id) {
-        Todo todo = this.todoRepository.findById(id);
-        try {
-            Path filePath = this.rootLocation.resolve(todo.getImage()).normalize();
-            Resource resource = new UrlResource(filePath.toUri());
-            if(resource.exists()) {
-                return resource;
-            } else {
-                throw new FileNotFound("Error at saving image.");
-            }
-        } catch (MalformedURLException ex) {
-            throw new FileNotFound("Error at saving image.");
-        }
-    }
-
-    @Override
     @Transactional
     public Response saveTodo(Todo todo, MultipartFile image) {
         String path;
@@ -117,7 +93,7 @@ public class TodoServiceImpl implements TodoService {
             if(path != null) {
                 todo.setImage(path);
                 this.todoRepository.save(todo);
-                return new Response(null, todo.getId(), HttpStatus.CREATED);
+                return new Response(null, todo, HttpStatus.CREATED);
             }
         } catch (FileNotFound e) {
             return new Response(e.getMessage(), null, HttpStatus.BAD_REQUEST);
@@ -128,7 +104,7 @@ public class TodoServiceImpl implements TodoService {
 
     public String saveImage(MultipartFile image) {
         // Normalize file name
-        String fileName = UUID.randomUUID().toString();
+        String fileName = UUID.randomUUID().toString() + ".png";
         try {
             // Check if the file's name contains invalid characters
             if(fileName.contains("..")) {

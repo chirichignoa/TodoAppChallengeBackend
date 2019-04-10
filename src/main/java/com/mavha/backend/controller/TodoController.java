@@ -61,17 +61,6 @@ public class TodoController {
     public @ResponseBody ResponseEntity<String> getTodos(@RequestParam(value="id", required=false) Long id,
                                                  @RequestParam(value="description", required=false) String description,
                                                  @RequestParam(value="status", required=false) String status) {
-//        Todo todo = new Todo();
-//        if(id != null) {
-//            todo.setId(id);
-//        }
-//        if(description != null) {
-//            todo.setDescription(description);
-//        }
-//        if(status != null) {
-//            todo.setStatus(Status.PENDING.toString().equals(status) ? Status.PENDING : Status.DONE);
-//        }
-//        Response response = this.todoService.getTodos(todo);
         Status statusTodo = null;
         if(status != null) {
             statusTodo = Status.PENDING.toString().equals(status) ? Status.PENDING : Status.DONE;
@@ -80,32 +69,6 @@ public class TodoController {
         return ResponseEntity.status(response.getCode())
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(this.gson.toJson(response));
-    }
-
-    // GET IMAGE
-    @RequestMapping(value = "/todo/{id}",
-            method = RequestMethod.GET,
-            produces = "application/json;")
-    public @ResponseBody ResponseEntity<Resource> getImage(@PathVariable Long id, HttpServletRequest request) {
-        try {
-            Resource resource = this.todoService.getImage(id);
-            String contentType = null;
-            try {
-                contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
-            } catch (IOException ex) {
-                logger.info("Could not determine file type.");
-            }
-            if (contentType == null) {
-                contentType = "application/octet-stream";
-            }
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(contentType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
-                    .body(resource);
-        } catch (FileNotFound e) {
-            return ResponseEntity.badRequest()
-                    .body(null);
-        }
     }
 
     // PATCH update state
