@@ -96,7 +96,7 @@ public class TodoServiceImpl implements TodoService {
                 return new Response(null, todo, HttpStatus.CREATED);
             }
         } catch (FileNotFound e) {
-            return new Response(e.getMessage(), null, HttpStatus.BAD_REQUEST);
+            return new Response("Error saving image", null, HttpStatus.BAD_REQUEST);
         }
         // return response
         return new Response("Error saving todo.", null, HttpStatus.BAD_REQUEST);
