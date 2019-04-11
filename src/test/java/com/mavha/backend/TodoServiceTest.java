@@ -84,7 +84,7 @@ public class TodoServiceTest {
 
     @Test
     public void shouldNotSaveTodo() {
-        Response correctResponse = new Response("Error saving image.", null, HttpStatus.BAD_REQUEST);
+        Response correctResponse = new Response("Error saving image", null, HttpStatus.BAD_REQUEST);
         Todo todo = new Todo("Art. Limpieza", "Comprar Articulos de limpieza");
         MockMultipartFile image = new MockMultipartFile("image", "image.png",
                 "application/x-www-form-urlencoded", new byte[10]);
